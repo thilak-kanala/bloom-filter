@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-typedef unsigned int (*hash_function)(const void *data);
 typedef struct bloom_filter *bloom_t;
 
 /* Creates a new bloom filter with size = (size * 8) bits. */
@@ -24,5 +23,8 @@ void bloom_add(bloom_t filter, const void *item);
  * Returns 0 if the item has definitely not been added before. Returns 1
  * if the item was probably added before. */
 bool bloom_test(bloom_t filter, const void *item);
+
+/* Print the bloom filter for debugging purposes */
+void bloom_print(bloom_t filter);
 
 #endif

@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include "bloom.h"
 
+#include <stdio.h>
+
 struct bloom_filter
 {
     void *bits;
@@ -104,4 +106,24 @@ bool bloom_test(bloom_t filter, const void *item)
     {
         return false;
     }
+}
+
+void bloom_print(bloom_t filter)
+{
+    uint8_t *bits = filter->bits;
+    int size = filter->size;
+
+    printf("Bloom Filter: ");
+    for (int i = 0; i < size; i++)
+    {
+        // iterate through each bit
+        for (int j = 0; j < 8; j++)
+        {
+            if (bits[i] & (1 << j))
+            {
+                printf("%d, ", (i * 8) + j);
+            }
+        }
+    }
+    printf("\n");
 }

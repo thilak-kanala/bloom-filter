@@ -1,40 +1,38 @@
 #include "bloom.h"
 #include <stdio.h>
 
+char test_data[5][100] = {
+    "ramesh",
+    "suresh",
+    "thilak",
+    "vaibhav",
+    "sujith",
+};
+
 int main(int argc, char const *argv[])
 {
-    bool result[10];
+    bloom_t bloom = bloom_create(2);
 
-    bloom_t bloom = bloom_create(8);
+    for (int i = 0; i < 5; i++)
+    {
+        bloom_add(bloom, test_data[i]);
+    }
 
-    result[0] = bloom_test(bloom, "ramesh");
-    result[1] = bloom_test(bloom, "suresh");
-    result[2] = bloom_test(bloom, "thilak");
-    result[3] = bloom_test(bloom, "vaibhav");
+    bool result[5];
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
+    {
+        result[i] = bloom_test(bloom, test_data[i]);
+    }
+
+    printf("results: ");
+    for (int i = 0; i < 5; i++)
     {
         printf("%d, ", result[i]);
     }
     printf("\n");
 
-    bloom_add(bloom, "ramesh");
-    bloom_add(bloom, "suresh");
-    bloom_add(bloom, "thilak");
-    bloom_add(bloom, "vaibhav");
-
-
-    result[0] = bloom_test(bloom, "ramesh");
-    result[1] = bloom_test(bloom, "suresh");
-    result[2] = bloom_test(bloom, "thilak");
-    result[3] = bloom_test(bloom, "hello world");
-
-    for (int i = 0; i < 4; i++)
-    {
-        printf("%d, ", result[i]);
-    }
-    printf("\n");
-
+    bloom_print(bloom);
 
     return 0;
 }
