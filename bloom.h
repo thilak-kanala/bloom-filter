@@ -21,7 +21,7 @@ void bloom_add(bloom_t filter, const void *item);
 
 /* Tests if an item is in the bloom filter.
  *
- * Returns false if the item has definitely not been added before. Returns true
+ * Returns 0 if the item has definitely not been added before. Returns 1
  * if the item was probably added before. */
 bool bloom_test(bloom_t filter, const void *item);
 

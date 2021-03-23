@@ -96,5 +96,12 @@ bool bloom_test(bloom_t filter, const void *item)
     hash %= filter->size * 8;
     result &= (bits[hash / 8] & 1 << hash % 8);
 
-    return result;
+    if (result)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

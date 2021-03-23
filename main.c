@@ -3,7 +3,7 @@
 
 int main(int argc, char const *argv[])
 {
-    int result[10];
+    bool result[10];
 
     bloom_t bloom = bloom_create(8);
 
@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
     result[0] = bloom_test(bloom, "ramesh");
     result[1] = bloom_test(bloom, "suresh");
     result[2] = bloom_test(bloom, "thilak");
-    result[3] = bloom_test(bloom, "vaibhav");
+    result[3] = bloom_test(bloom, "hello world");
 
     for (int i = 0; i < 4; i++)
     {
