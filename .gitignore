@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+random_strings.txt
+words_insert.txt
+words_query.txt
