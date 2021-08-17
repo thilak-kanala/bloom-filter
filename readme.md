@@ -1,1 +1,1 @@
-# Bloom Filter in C
+# Bloom Filter on GPU
