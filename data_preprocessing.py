@@ -1,5 +1,6 @@
 import os
 import sys
+import random
 
 print('== Data Preprocessing Started ... ==')
 
@@ -41,14 +42,28 @@ modified_words_query_fh = open("words_query.txt", 'w+')
 modified_words_query_fh.write(" ")
 
 
+n_real_words = int(N_WORDS/2)
+n_fake_words = N_WORDS - n_real_words
+
 i = 0
-for word in words[:N_WORDS]:
+for word in words[:n_real_words]:
     modified_words_query_fh.write(word)
     modified_words_query_fh.write(" ")
 
-    progress = ((i / N_WORDS) * 100)
+    progress = ((i / n_real_words) * 100)
     if (progress % 20 == 0):
-        print(f'{progress} %')
+        print(f'real query words: {progress} %')
+    i = i + 1
+
+print('---')
+
+for i in range(0, n_fake_words):
+    modified_words_query_fh.write(random.choice(['apple', 'banana', 'mango']))
+    modified_words_query_fh.write(" ")
+
+    progress = ((i / n_fake_words) * 100)
+    if (progress % 20 == 0):
+        print(f'fake query words: {progress} %')
     i = i + 1
 
 modified_words_query_fh.close()
