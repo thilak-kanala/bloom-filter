@@ -11,8 +11,8 @@ print(output)
 # !nvcc -G ./bloom-filter/gpu_bloom/gpu_bloom_v2.cu -o ./bloom-filter/gpu_bloom/gpu_bloom.out
 
 start_n = 0
-stop_n = 1000
-step_n = 100
+stop_n = 1000000
+step_n = 100000
 
 x = []
 for n_words in range(start_n, stop_n, step_n):

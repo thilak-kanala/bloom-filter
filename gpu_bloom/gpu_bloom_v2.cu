@@ -33,8 +33,6 @@ __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word
 
         index = hash(word, word_len, 1, i);
 
-        printf("%d: bloom_query: %d\n", tid, index);
-
         // set index bit
         atomicOr(&d_bloom_filter[index / 32], (1 << (index % 32)));
     }
@@ -60,8 +58,6 @@ __device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_
         // index = h1;
 
         index = hash(word, word_len, 1, i);
-
-        printf("%d: bloom_query: %d\n", tid, index);
 
         // extract the relevant part (32 bits) of bloom filter
         bloom_filter_partial = d_bloom_filter[index / 32];
@@ -351,7 +347,7 @@ int main(void)
 
     milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Querying words to Bloom Filter (kernel) took:  %f ms\n", milliseconds);
+    printf("Querying words from Bloom Filter (kernel) took:  %f ms\n", milliseconds);
 
     err = cudaGetLastError();
 
