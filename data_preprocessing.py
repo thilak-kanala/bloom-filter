@@ -1,5 +1,9 @@
 import os
 import sys
+import random
+
+random_words = [
+'green', 'double', 'disability', 'fold', 'bet', 'tendency', 'extract', 'deputy', 'trolley', 'indoor', 'van', 'rain', 'preference', 'laboratory', 'realize', 'wine', 'pressure', 'hilarious', 'outlook', 'voter', 'account', 'irony', 'end', 'toll', 'am', 'creed', 'absorb', 'allocation', 'hurt', 'last', 'key', 'medieval', 'oil', 'stir', 'hair', 'breathe', 'favorable', 'solve', 'rich', 'quest', 'trap', 'drawer', 'animal', 'fitness', 'construct', 'factory', 'humanity', 'sugar', 'concrete', 'hallway']
 
 print('== Data Preprocessing Started ... ==')
 
@@ -42,13 +46,22 @@ modified_words_query_fh.write(" ")
 
 
 i = 0
-for word in words[:N_WORDS]:
+for word in words[:(N_WORDS/2)]:
     modified_words_query_fh.write(word)
     modified_words_query_fh.write(" ")
 
-    progress = ((i / N_WORDS) * 100)
+    progress = ((i / (N_WORDS/2)) * 100)
     if (progress % 20 == 0):
-        print(f'{progress} %')
+        print(f'real query words: {progress} %')
+    i = i + 1
+
+for i in range(0, (N_WORDS/2)):
+    modified_words_query_fh.write(random.choice(random_words))
+    modified_words_query_fh.write(" ")
+
+    progress = ((i / (N_WORDS/2)) * 100)
+    if (progress % 20 == 0):
+        print(f'fake query words: {progress} %')
     i = i + 1
 
 modified_words_query_fh.close()
