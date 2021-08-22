@@ -15,7 +15,7 @@ uint32_t total_words = 0;
 /* Generate a hash based on The Combinatorial Approach (https://github.com/Claudenw/BloomFilter/wiki/Bloom-Filters----An-Overview) */
 __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word_len, int tid)
 {
-    uint64_t index = 0;
+    uint32_t index = 0;
 
     // uint64_t hash = XXH64((char*) word, word_len, 0);
     // uint64_t h1;
@@ -43,7 +43,7 @@ __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word
 __device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_len, uint32_t *d_query_results, int tid)
 {
     int is_present = 1;
-    uint64_t index;
+    uint32_t index;
     uint32_t bloom_filter_partial;
 
     // uint64_t hash = XXH64((char*) word, word_len, 0);

@@ -102,7 +102,7 @@ jenkins(char *words_to_insert, int len_words_to_insert)
     value of hash changes based on k
 */
 __device__
-uint64_t hash(char *string, uint32_t string_len, int hash, int k)
+uint32_t hash(char *string, uint32_t string_len, int hash, int k)
 {
     if (hash == 1)
     {
