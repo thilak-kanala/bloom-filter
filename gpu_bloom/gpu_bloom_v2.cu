@@ -9,6 +9,7 @@
 #include "xxhash64.cuh"
 #include "hash.cuh"
 #include "utility.cuh"
+#include "defines.cuh"
 
 uint32_t total_words = 0;
 

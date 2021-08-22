@@ -1,3 +1,4 @@
+#include "defines.cuh"
 
 /*
 Hash lookup table
@@ -5,7 +6,7 @@ Hash lookup table
 /*
 
 /* Splits the 64bit hash into 2 32 bit hashes h1 and h2 */
-__device__ __host__ void split_hash_bits(uint64_t hash, uint64_t *h1, uint64_t *h2)
+__device__ __host__ void split_hash_bits(uint64_t hash, uint32_t *h1, uint32_t *h2)
 {
     uint64_t mask;
     uint64_t one_64bit = 1;
@@ -33,7 +34,7 @@ __device__ __host__ void split_hash_bits(uint64_t hash, uint64_t *h1, uint64_t *
 }
 
 /* Splits the 32bit hash into 2 16 bit hashes h1 and h2 */
-__device__ __host__ void split_hash_bits_32(uint64_t hash, uint32_t *h1, uint32_t *h2)
+__device__ __host__ void split_hash_bits_32(uint32_t hash, uint32_t *h1, uint32_t *h2)
 {
     uint32_t mask;
     uint32_t one_32bit = 1;
@@ -106,19 +107,16 @@ uint32_t hash(char *string, uint32_t string_len, int hash, int k)
 {
     if (hash == 1)
     {
-        printf("Testing Hash: %d, %d\n", hash, k);
-
-        // uint64_t hash = XXH64((char*) word, word_len, 0);
-        // uint64_t h1;
-        // uint64_t h2;
+        uint64_t hash = XXH64(string, string_len, 0);
+        uint32_t h1;
+        uint32_t h2;
     
-        // split_hash_bits(hash, &h1, &h2);
+        split_hash_bits(hash, &h1, &h2);
 
-        // h1 += (h2 * i);
-        // h1 = h1 % BLOOM_FILTER_SIZE;
-        // index = h1;
+        h1 += (h2 * k);
+        h1 = h1 % BLOOM_FILTER_SIZE;
 
-        return 42;
+        return h1;
     }
     else 
     {
