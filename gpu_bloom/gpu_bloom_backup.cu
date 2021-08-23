@@ -6,7 +6,7 @@
 #include <stdint.h>   /* uint8_t, uint32_t, uint64_t */
 #include <inttypes.h> /* print formatting */
 
-#define BLOOM_FILTER_SIZE 335477044
+#define BLOOM_FILTER_SIZE 33547705
 #define N_HASHES 23
 #define FILE_WORDS_TO_INSERT "words_insert.txt"
 #define FILE_WORDS_TO_QUERY "words_query.txt"
@@ -283,46 +283,17 @@ __device__ __host__ void split_hash_bits(uint64_t hash, uint64_t *h1, uint64_t *
     *h2 = (hash & mask) >> 32;
 }
 
-/* Splits the 32bit hash into 2 16 bit hashes h1 and h2 */
-__device__ __host__ void split_hash_bits_32(uint64_t hash, uint32_t *h1, uint32_t *h2)
-{
-    uint32_t mask;
-    uint32_t one_32bit = 1;
-
-    // Clear all bits
-    mask = 0;
-
-    // Create mask to extract bottom 16 bits
-    for (int i = 0; i < 16; i++)
-    {
-        mask |= (one_32bit << i);
-    }
-
-    // Extract bottom 16 bits
-    *h1 = hash & mask;
-
-    // Create mask to extract top 16 bits
-    for (int i = 16; i < 32; i++)
-    {
-        mask |= (one_32bit << i);
-    }
-
-    // Extract top 16 bits
-    *h2 = (hash & mask) >> 16;
-}
-
 
 /* Generate a hash based on The Combinatorial Approach (https://github.com/Claudenw/BloomFilter/wiki/Bloom-Filters----An-Overview) */
 __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word_len, int tid)
 {
     uint32_t index = 0;
 
-    uint64_t hash = XXH64((char*) word, word_len, 0);
+    uint64_t hash = XXH64((uint8_t*) word, word_len, 0);
     uint64_t h1;
     uint64_t h2;
 
     split_hash_bits(hash, &h1, &h2);
-    // split_hash_bits_32(hash, &h1, &h2);
 
     for (uint32_t i = 0; i < N_HASHES; i++)
     {
@@ -342,7 +313,7 @@ __device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_
     uint32_t index;
     uint32_t bloom_filter_partial;
 
-    uint64_t hash = XXH64((char*) word, word_len, 0);
+    uint64_t hash = XXH64((uint8_t*) word, word_len, 0);
     uint64_t h1;
     uint64_t h2;
 
@@ -385,9 +356,8 @@ __global__ void map_bloom_kernel(char *d_words_to_insert, int len_words_to_inser
     uint32_t si = d_word_indices[tid] + 1;
     uint32_t ei = d_word_indices[tid + 1] - 1;
 
-    // char *word = (char *)malloc((ei - si + 1) * sizeof(char));
-    char word[128];
-
+    // Copy string to private memory?
+    char *word = (char *)malloc((ei - si + 1) * sizeof(char));
     for (uint32_t i = si; si <= ei; si++)
     {
         word[si - i] = d_words_to_insert[si];
@@ -395,7 +365,6 @@ __global__ void map_bloom_kernel(char *d_words_to_insert, int len_words_to_inser
 
     // Add word to bloom filter
     bloom_insert(d_bloom_filter, word, word_len, tid);
-    // free(word);
 }
 
 __global__ void query_bloom_kernel(char *d_words_to_query, int len_words_to_insert, uint32_t *d_word_indices, uint32_t *d_bloom_filter, uint32_t *d_query_results, uint32_t total_words)
@@ -414,18 +383,16 @@ __global__ void query_bloom_kernel(char *d_words_to_query, int len_words_to_inse
     uint32_t si = d_word_indices[tid] + 1;
     uint32_t ei = d_word_indices[tid + 1] - 1;
 
-    // char *word = (char *)malloc((ei - si + 1) * sizeof(char));
-    char word[128];
+    // Copy string to private memory?
+    char *word = (char *)malloc((ei - si + 1) * sizeof(char));
 
     for (uint32_t i = si; si <= ei; si++)
     {
-        // printf("tid, bid, si: %d, %d, %d\n", threadIdx.x, blockIdx.x, si);
         word[si - i] = d_words_to_query[si];
     }
 
     // Add word to bloom filter
     bloom_query(d_bloom_filter, word, word_len, d_query_results, tid);
-    // free(word);
 }
 
 // Hash Functions
@@ -642,7 +609,7 @@ int main(void)
 
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transferring strings and bloom filter from Host to GPU Global Memory took %f ms\n", milliseconds);
+    printf("Transferring strings from Host to GPU Global Memory took %f ms\n", milliseconds);
 
     cudaError_t err = cudaGetLastError();
 
@@ -656,7 +623,7 @@ int main(void)
     // cudaEventRecord( start, 0 );
 
     cudaEventRecord(start);
-    map_bloom_kernel<<<ceil(total_words / 256.0), 256>>>(d_words_to_insert, len_words_to_insert, d_word_indices, d_bloom_filter, total_words);
+    map_bloom_kernel<<<((total_words + 511) / 512), 512>>>(d_words_to_insert, len_words_to_insert, d_word_indices, d_bloom_filter, total_words);
     cudaEventRecord(stop);
 
     cudaEventSynchronize(stop);
@@ -702,112 +669,98 @@ int main(void)
     cudaFree(d_words_to_insert);
     cudaFree(d_word_indices);
 
+    err = cudaGetLastError();
+
+    if ( err != cudaSuccess )
+    {
+       printf("3.CUDA Error: %s\n", cudaGetErrorString(err));       
+
+       // Possibly: exit(-1) if program cannot continue....
+    }
+
     /* === Query Bloom Filter === */
 
-    char *words_to_query = read_from_file(FILE_WORDS_TO_QUERY);
-    uint32_t len_words_to_query = strlen(words_to_query);
+    // char *words_to_query = read_from_file(FILE_WORDS_TO_QUERY);
+    // /* char *words_to_query = buffer; */
+    // uint32_t len_words_to_query = strlen(words_to_query);
 
-    total_words = 0;
-    for (uint32_t i = 0; i < len_words_to_query; i++)
-    {
-        if (words_to_query[i] == ' ')
-        {
-            total_words++;
-        }
-    }
-    // To account for the space at the beginning and the end
-    total_words -= 1;
+    // total_words = 0;
+    // for (uint32_t i = 0; i < len_words_to_query; i++)
+    // {
+    //     if (words_to_query[i] == ' ')
+    //     {
+    //         total_words++;
+    //     }
+    // }
+    // // To account for the space at the beginning and the end
+    // total_words -= 1;
 
-    word_indices = (uint32_t *)calloc((total_words + 1), sizeof(int));
+    // word_indices = (uint32_t *)calloc((total_words + 1), sizeof(int));
 
-    wi = -1;
-    for (uint32_t i = 0; i < len_words_to_query; i++)
-    {
-        if (words_to_query[i] == ' ')
-        {
-            word_indices[++wi] = i;
-        }
-    }
+    // wi = -1;
+    // for (uint32_t i = 0; i < len_words_to_query; i++)
+    // {
+    //     if (words_to_query[i] == ' ')
+    //     {
+    //         word_indices[++wi] = i;
+    //     }
+    // }
 
-    uint32_t *query_results = (uint32_t *)calloc(total_words, sizeof(uint32_t));
-    uint32_t *d_query_results;
-    char *d_words_to_query;
-
-    cudaEventRecord(start);
-
-    cudaMalloc((void **)&d_words_to_query, len_words_to_query * sizeof(char));
-    cudaMalloc((void **)&d_word_indices, (total_words + 1) * sizeof(int));
-    cudaMalloc((void **)&d_query_results, (ceil(total_words / 32.0) * sizeof(uint32_t)));
+    // uint32_t *query_results = (uint32_t *)calloc(total_words, sizeof(uint32_t));
+    // uint32_t *d_query_results;
+    // char *d_words_to_query;
 
 
-    err = cudaGetLastError();
+    // cudaMalloc((void **)&d_words_to_query, len_words_to_query * sizeof(char));
+    // cudaMalloc((void **)&d_word_indices, (total_words + 1) * sizeof(int));
+    // cudaMalloc((void **)&d_query_results, (ceil(total_words / 32.0) * sizeof(uint32_t)));
 
-    if ( err != cudaSuccess )
-    {
-       printf("4.CUDA Error: %s\n", cudaGetErrorString(err));       
 
-       // Possibly: exit(-1) if program cannot continue....
-    }
+    // err = cudaGetLastError();
 
-    cudaMemcpy(d_words_to_query, words_to_query, len_words_to_query * sizeof(char), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_word_indices, word_indices, (total_words + 1) * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_query_results, query_results, (ceil(total_words / 32.0) * sizeof(uint32_t)), cudaMemcpyHostToDevice);
+    // if ( err != cudaSuccess )
+    // {
+    //    printf("4.CUDA Error: %s\n", cudaGetErrorString(err));       
 
-    cudaEventRecord(stop);
+    //    // Possibly: exit(-1) if program cannot continue....
+    // }
 
-    cudaEventSynchronize(stop);
-    milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transerring Query Words to Global Memory took:  %f ms\n", milliseconds);
+    // cudaMemcpy(d_words_to_query, words_to_query, len_words_to_query * sizeof(char), cudaMemcpyHostToDevice);
+    // cudaMemcpy(d_word_indices, word_indices, (total_words + 1) * sizeof(int), cudaMemcpyHostToDevice);
+    // cudaMemcpy(d_query_results, query_results, (ceil(total_words / 32.0) * sizeof(uint32_t)), cudaMemcpyHostToDevice);
 
-    err = cudaGetLastError();
+    // err = cudaGetLastError();
 
-    if ( err != cudaSuccess )
-    {
-       printf("5.CUDA Error: %s\n", cudaGetErrorString(err));       
+    // if ( err != cudaSuccess )
+    // {
+    //    printf("5.CUDA Error: %s\n", cudaGetErrorString(err));       
 
-       // Possibly: exit(-1) if program cannot continue....
-    }
+    //    // Possibly: exit(-1) if program cannot continue....
+    // }
 
-    cudaEventRecord(start);
+    // // printf("Before Query Kernel: %d, %d, %d\n", total_words, ((total_words + 1023) / 1024), 1024);
 
-    query_bloom_kernel<<<ceil(total_words / 256.0), 256>>>(d_words_to_query, len_words_to_query, d_word_indices, d_bloom_filter, d_query_results, total_words);
+    // query_bloom_kernel<<<((total_words + 1023) / 1024), 1024>>>(d_words_to_query, len_words_to_query, d_word_indices, d_bloom_filter, d_query_results, total_words);
 
-    cudaEventRecord(stop);
+    // err = cudaGetLastError();
 
-    cudaEventSynchronize(stop);
+    // if ( err != cudaSuccess )
+    // {
+    //    printf("6.CUDA Error: %s\n", cudaGetErrorString(err));       
 
-    milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Querying words to Bloom Filter (kernel) took:  %f ms\n", milliseconds);
+    //    // Possibly: exit(-1) if program cannot continue....
+    // }
 
-    err = cudaGetLastError();
+    // cudaMemcpy(query_results, d_query_results, (ceil(total_words / 32.0) * sizeof(uint32_t)), cudaMemcpyDeviceToHost);
 
-    if ( err != cudaSuccess )
-    {
-       printf("6.CUDA Error: %s\n", cudaGetErrorString(err));       
+    // printf("\n== After Querying Words from Bloom Filter ==\n");
 
-       // Possibly: exit(-1) if program cannot continue....
-    }
+    // print_query_results(words_to_query, len_words_to_query, word_indices, query_results, total_words);
 
-    cudaEventRecord(start);
-    cudaMemcpy(query_results, d_query_results, (ceil(total_words / 32.0) * sizeof(uint32_t)), cudaMemcpyDeviceToHost);
-        cudaEventRecord(stop);
-
-    cudaEventSynchronize(stop);
-
-    milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transferring query results to host took:  %f ms\n", milliseconds);
-
-    printf("\n== After Querying Words from Bloom Filter ==\n");
-
-    print_query_results(words_to_query, len_words_to_query, word_indices, query_results, total_words);
-
-    cudaFree(d_words_to_query);
-    cudaFree(d_word_indices);
-    cudaFree(d_query_results);
-    cudaFree(d_bloom_filter);
+    // cudaFree(d_words_to_query);
+    // cudaFree(d_word_indices);
+    // cudaFree(d_query_results);
+    // cudaFree(d_bloom_filter);
 
     return 0;
 }
