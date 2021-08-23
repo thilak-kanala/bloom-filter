@@ -13,8 +13,15 @@
 
 uint32_t total_words = 0;
 
+/*
+    1 : XXHASH64
+    2 : djb2
+    3 : jenkins
+*/
+int HASH_FUNCTION = 1;
+
 /* Generate a hash based on The Combinatorial Approach (https://github.com/Claudenw/BloomFilter/wiki/Bloom-Filters----An-Overview) */
-__device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word_len, int tid)
+__device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word_len, int tid, int HASH_FUNCTION)
 {
     uint32_t index = 0;
 
@@ -31,7 +38,7 @@ __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word
         // h1 = h1 % BLOOM_FILTER_SIZE;
         // index = h1;
 
-        index = hash(word, word_len, 1, i);
+        index = hash(word, word_len, HASH_FUNCTION, i);
 
         // set index bit
         atomicOr(&d_bloom_filter[index / 32], (1 << (index % 32)));
@@ -39,7 +46,7 @@ __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word
 }
 
 /* Generate a hash based on The Combinatorial Approach (https://github.com/Claudenw/BloomFilter/wiki/Bloom-Filters----An-Overview) */
-__device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_len, uint32_t *d_query_results, int tid)
+__device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_len, uint32_t *d_query_results, int tid, int HASH_FUNCTION)
 {
     int is_present = 1;
     uint32_t index;
@@ -57,7 +64,7 @@ __device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_
         // h1 = h1 % BLOOM_FILTER_SIZE;
         // index = h1;
 
-        index = hash(word, word_len, 1, i);
+        index = hash(word, word_len, HASH_FUNCTION, i);
 
         // extract the relevant part (32 bits) of bloom filter
         bloom_filter_partial = d_bloom_filter[index / 32];
@@ -76,7 +83,7 @@ __device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_
     }
 }
 
-__global__ void map_bloom_kernel(char *d_words_to_insert, int len_words_to_insert, uint32_t *d_word_indices, uint32_t *d_bloom_filter, uint32_t total_words)
+__global__ void map_bloom_kernel(char *d_words_to_insert, int len_words_to_insert, uint32_t *d_word_indices, uint32_t *d_bloom_filter, uint32_t total_words, int HASH_FUNCTION)
 {
     int tid = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -99,11 +106,11 @@ __global__ void map_bloom_kernel(char *d_words_to_insert, int len_words_to_inser
     }
 
     // Add word to bloom filter
-    bloom_insert(d_bloom_filter, word, word_len, tid);
+    bloom_insert(d_bloom_filter, word, word_len, tid, HASH_FUNCTION);
     // free(word);
 }
 
-__global__ void query_bloom_kernel(char *d_words_to_query, int len_words_to_insert, uint32_t *d_word_indices, uint32_t *d_bloom_filter, uint32_t *d_query_results, uint32_t total_words)
+__global__ void query_bloom_kernel(char *d_words_to_query, int len_words_to_insert, uint32_t *d_word_indices, uint32_t *d_bloom_filter, uint32_t *d_query_results, uint32_t total_words, int HASH_FUNCTION)
 {
     int tid = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -129,11 +136,11 @@ __global__ void query_bloom_kernel(char *d_words_to_query, int len_words_to_inse
     }
 
     // Add word to bloom filter
-    bloom_query(d_bloom_filter, word, word_len, d_query_results, tid);
+    bloom_query(d_bloom_filter, word, word_len, d_query_results, tid, HASH_FUNCTION);
     // free(word);
 }
 
-int main(void)
+int main(int argc, char const *argv[])
 {
     cudaFree(0);
 
@@ -144,6 +151,8 @@ int main(void)
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+
+    HASH_FUNCTION = atoi(argv[1]);
 
     /* === Intialize profiling related variables === */
     // cudaEvent_t start, stop;
@@ -224,7 +233,7 @@ int main(void)
     // cudaEventRecord( start, 0 );
 
     cudaEventRecord(start);
-    map_bloom_kernel<<<ceil(total_words / 256.0), 256>>>(d_words_to_insert, len_words_to_insert, d_word_indices, d_bloom_filter, total_words);
+    map_bloom_kernel<<<ceil(total_words / 256.0), 256>>>(d_words_to_insert, len_words_to_insert, d_word_indices, d_bloom_filter, total_words, HASH_FUNCTION);
     cudaEventRecord(stop);
 
     cudaEventSynchronize(stop);
@@ -339,7 +348,7 @@ int main(void)
 
     cudaEventRecord(start);
 
-    query_bloom_kernel<<<ceil(total_words / 256.0), 256>>>(d_words_to_query, len_words_to_query, d_word_indices, d_bloom_filter, d_query_results, total_words);
+    query_bloom_kernel<<<ceil(total_words / 256.0), 256>>>(d_words_to_query, len_words_to_query, d_word_indices, d_bloom_filter, d_query_results, total_words, HASH_FUNCTION);
 
     cudaEventRecord(stop);
 

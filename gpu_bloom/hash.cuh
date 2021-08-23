@@ -64,14 +64,14 @@ __device__ __host__ void split_hash_bits_32(uint32_t hash, uint32_t *h1, uint32_
 /* === General Purpose Hash Functions BEGIN ===*/
 __device__
 uint32_t
-djb2(char *words_to_insert, int len_words_to_insert)
+djb2(char *string, uint32_t string_len)
 {
     uint32_t hash = 5381;
     char c;
     uint32_t i = 0;
-    while (i++ < len_words_to_insert)
+    while (i++ < string_len)
     {
-        c = *words_to_insert++;
+        c = *string++;
         hash = ((hash << 5) + hash) + c;
     }
     return hash;
@@ -79,13 +79,13 @@ djb2(char *words_to_insert, int len_words_to_insert)
 
 __device__
 uint32_t
-jenkins(char *words_to_insert, int len_words_to_insert)
+jenkins(char *string, uint32_t string_len)
 {
     uint32_t hash = 5381;
     uint32_t i = 0;
-    while (i < len_words_to_insert)
+    while (i < string_len)
     {
-        hash += *words_to_insert++;
+        hash += *string++;
         hash += (hash << 10);
         hash ^= (hash >> 6);
         i++;
@@ -112,6 +112,32 @@ uint32_t hash(char *string, uint32_t string_len, int hash, int k)
         uint32_t h2;
     
         split_hash_bits(hash, &h1, &h2);
+
+        h1 += (h2 * k);
+        h1 = h1 % BLOOM_FILTER_SIZE;
+
+        return h1;
+    }
+    else if (hash == 2)
+    {
+        uint32_t hash = djb2(string, string_len);
+        uint32_t h1;
+        uint32_t h2;
+    
+        split_hash_bits_32(hash, &h1, &h2);
+
+        h1 += (h2 * k);
+        h1 = h1 % BLOOM_FILTER_SIZE;
+
+        return h1;
+    }
+    else if (hash == 3)
+    {
+        uint32_t hash = jenkins(string, string_len);
+        uint32_t h1;
+        uint32_t h2;
+    
+        split_hash_bits_32(hash, &h1, &h2);
 
         h1 += (h2 * k);
         h1 = h1 % BLOOM_FILTER_SIZE;
