@@ -32,13 +32,19 @@ __device__ void bloom_insert(uint32_t *d_bloom_filter, char *word, uint32_t word
     // split_hash_bits(hash, &h1, &h2);
     // split_hash_bits_32(hash, &h1, &h2);
 
+    uint32_t hash_value;
+    hash_value = hash(word, word_len, HASH_FUNCTION);
+
+    uint32_t h1;
+    uint32_t h2;
+
+    split_hash_bits_32(hash_value, &h1, &h2);
+
     for (uint32_t i = 0; i < N_HASHES; i++)
     {
-        // h1 += (h2 * i);
-        // h1 = h1 % BLOOM_FILTER_SIZE;
-        // index = h1;
-
-        index = hash(word, word_len, HASH_FUNCTION, i);
+        h1 += (h2 * i);
+        h1 = h1 % BLOOM_FILTER_SIZE;
+        index = h1;
 
         // set index bit
         atomicOr(&d_bloom_filter[index / 32], (1 << (index % 32)));
@@ -58,13 +64,19 @@ __device__ void bloom_query(uint32_t *d_bloom_filter, char *word, uint32_t word_
 
     // split_hash_bits(hash, &h1, &h2);
 
+    uint32_t hash_value;
+    hash_value = hash(word, word_len, HASH_FUNCTION);
+
+    uint32_t h1;
+    uint32_t h2;
+
+    split_hash_bits_32(hash_value, &h1, &h2);
+
     for (uint32_t i = 0; i < N_HASHES; i++)
     {
-        // h1 += (h2 * i);
-        // h1 = h1 % BLOOM_FILTER_SIZE;
-        // index = h1;
-
-        index = hash(word, word_len, HASH_FUNCTION, i);
+        h1 += (h2 * i);
+        h1 = h1 % BLOOM_FILTER_SIZE;
+        index = h1;
 
         // extract the relevant part (32 bits) of bloom filter
         bloom_filter_partial = d_bloom_filter[index / 32];

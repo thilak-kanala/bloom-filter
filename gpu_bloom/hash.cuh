@@ -1,5 +1,10 @@
 #include "defines.cuh"
 
+#include "xxhash32.cuh"
+#include "md5.cu"
+#include "sha1.cu"
+#include "normal_hash.cu"
+
 /*
 Hash lookup table
 1: XXHASH64
@@ -103,51 +108,47 @@ jenkins(char *string, uint32_t string_len)
     value of hash changes based on k
 */
 __device__
-uint32_t hash(char *string, uint32_t string_len, int hash, int k)
+uint32_t hash(char *string, uint32_t string_len, int hash)
 {
-    if (hash == 1)
+    if (hash == XXHASH32)
     {
-        uint64_t hash = XXH64(string, string_len, 0);
-        uint32_t h1;
-        uint32_t h2;
-    
-        split_hash_bits(hash, &h1, &h2);
+        uint32_t hash = XXH32(string, string_len, 0);
 
-        h1 += (h2 * k);
-        h1 = h1 % BLOOM_FILTER_SIZE;
-
-        return h1;
+        return hash;
     }
-    else if (hash == 2)
+    else if (hash == DJB2)
     {
         uint32_t hash = djb2(string, string_len);
-        uint32_t h1;
-        uint32_t h2;
-    
-        split_hash_bits_32(hash, &h1, &h2);
 
-        h1 += (h2 * k);
-        h1 = h1 % BLOOM_FILTER_SIZE;
-
-        return h1;
+        return hash;
     }
-    else if (hash == 3)
+    else if (hash == JENKINS)
     {
         uint32_t hash = jenkins(string, string_len);
-        uint32_t h1;
-        uint32_t h2;
-    
-        split_hash_bits_32(hash, &h1, &h2);
 
-        h1 += (h2 * k);
-        h1 = h1 % BLOOM_FILTER_SIZE;
-
-        return h1;
+        return hash;
     }
-    else 
+    else if (hash == APHASH)
+    {
+        uint32_t hash = Normal_APHash((unsigned char*) string, string_len);
+
+        return hash;
+    }
+    else if (hash == SHA1)
+    {
+    	uint32_t shaHash[HASHSIZE_SHA];
+        sha1((unsigned char*) string, string_len, (unsigned char*) shaHash);
+        return shaHash[0];
+    }
+    else if (hash == MD5)
+    {
+        uint32_t md5Hash[HASHSIZE_MD5];
+        md5((unsigned char*) string, string_len, (unsigned char*) md5Hash);
+        return md5Hash[0];
+    }
     {
         printf("Not a valid hash: %d\n", hash);
+        return 0;
     }
 
-    return 0;
 }
