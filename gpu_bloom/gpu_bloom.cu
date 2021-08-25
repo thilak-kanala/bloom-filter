@@ -194,11 +194,11 @@ int main(int argc, char const *argv[])
     // To account for the space at the beginning and the end
     total_words -= 1;
 
-    printf("\n---\n");
-    printf("Number of items to insert: %d\n", total_words);
-    printf("Number of bits in the Bloom Filter: %d\n", BLOOM_FILTER_SIZE);
-    printf("Number of hash functions: %d\n", N_HASHES);
-    printf("---\n");
+    // printf("\n---\n");
+    // printf("Number of items to insert: %d\n", total_words);
+    // printf("Number of bits in the Bloom Filter: %d\n", BLOOM_FILTER_SIZE);
+    // printf("Number of hash functions: %d\n", N_HASHES);
+    // printf("---\n");
 
     word_indices = (uint32_t *)calloc((total_words + 1), sizeof(uint32_t));
 
@@ -210,8 +210,8 @@ int main(int argc, char const *argv[])
         }
     }
 
-    printf("\n == Before Inserting Words ==\n");
-    print_bloom_filter(bloom_filter);
+    // printf("\n == Before Inserting Words ==\n");
+    // print_bloom_filter(bloom_filter);
 
     char *d_words_to_insert;
     uint32_t *d_word_indices;
@@ -231,7 +231,7 @@ int main(int argc, char const *argv[])
 
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transferring strings and bloom filter from Host to GPU Global Memory took %f ms\n", milliseconds);
+    // printf("Transferring strings and bloom filter from Host to GPU Global Memory took %f ms\n", milliseconds);
 
     cudaError_t err = cudaGetLastError();
 
@@ -252,7 +252,7 @@ int main(int argc, char const *argv[])
 
     milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Inserting words to Bloom Filter (kernel) took:  %f ms\n", milliseconds);
+    // printf("Inserting words to Bloom Filter (kernel) took:  %f ms\n", milliseconds);
 
     err = cudaGetLastError();
 
@@ -271,7 +271,7 @@ int main(int argc, char const *argv[])
 
     milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transferring Bloom Filter from GPU Global Memory to Host took %f ms\n", milliseconds);
+    // printf("Transferring Bloom Filter from GPU Global Memory to Host took %f ms\n", milliseconds);
 
 
     err = cudaGetLastError();
@@ -283,8 +283,8 @@ int main(int argc, char const *argv[])
        // Possibly: exit(-1) if program cannot continue....
     }
 
-    printf("\n == After Inserting Words to Bloom Filter ==\n");
-    print_bloom_filter(bloom_filter);
+    // printf("\n == After Inserting Words to Bloom Filter ==\n");
+    // print_bloom_filter(bloom_filter);
 
     // printf("== Inserting words using gpu took %f ms ==\n", time);
 
@@ -347,7 +347,7 @@ int main(int argc, char const *argv[])
     cudaEventSynchronize(stop);
     milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transerring Query Words to Global Memory took:  %f ms\n", milliseconds);
+    // printf("Transerring Query Words to Global Memory took:  %f ms\n", milliseconds);
 
     err = cudaGetLastError();
 
@@ -368,7 +368,7 @@ int main(int argc, char const *argv[])
 
     milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Querying words from Bloom Filter (kernel) took:  %f ms\n", milliseconds);
+    // printf("Querying words from Bloom Filter (kernel) took:  %f ms\n", milliseconds);
 
     err = cudaGetLastError();
 
@@ -387,9 +387,9 @@ int main(int argc, char const *argv[])
 
     milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Transferring query results to host took:  %f ms\n", milliseconds);
+    // printf("Transferring query results to host took:  %f ms\n", milliseconds);
 
-    printf("\n== After Querying Words from Bloom Filter ==\n");
+    // printf("\n== After Querying Words from Bloom Filter ==\n");
 
     print_query_results(words_to_query, len_words_to_query, word_indices, query_results, total_words);
 

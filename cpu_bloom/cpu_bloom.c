@@ -164,14 +164,7 @@ void print_query_results(char **words_to_query, uint32_t *query_results)
         }
     }
 
-    if (contains == N_WORDS_TO_QUERY)
-    {
-        printf("Query Success: %d\n", contains);
-    }
-    else
-    {
-        printf("Query Failed: %d\n", contains);
-    }
+    printf("Query Result: %d / %d are present\n\n", contains, N_WORDS_TO_QUERY);
 }
 
 void generate_words_to_insert(char **words_to_insert)
@@ -211,7 +204,9 @@ void insert_words_bloom_filter(char **words_to_insert, uint32_t *bloom_filter)
     {
         uint32_t index = 0;
 
-        uint64_t hash = XXH64((uint8_t *)words_to_insert[i], strlen(words_to_insert[i]), 0);
+        // uint64_t hash = XXH64((uint8_t *)words_to_insert[i], strlen(words_to_insert[i]), 0);
+        uint64_t hash = XXH32((uint8_t *)words_to_insert[i], strlen(words_to_insert[i]), 0);
+
         uint64_t h1;
         uint64_t h2;
 
@@ -236,7 +231,9 @@ void query_words_bloom_filter(char **words_to_query, uint32_t *bloom_filter, uin
         int is_present = 1;
         uint32_t index = 0;
 
-        uint64_t hash = XXH64((uint8_t *)words_to_query[i], strlen(words_to_query[i]), 0);
+        // uint64_t hash = XXH64((uint8_t *)words_to_query[i], strlen(words_to_query[i]), 0);
+        uint64_t hash = XXH32((uint8_t *)words_to_query[i], strlen(words_to_query[i]), 0);
+
         uint64_t h1;
         uint64_t h2;
 
@@ -291,8 +288,8 @@ int main(int argc, char const *argv[])
     //     printf("%s\n", words_to_insert[i]);
     // }
 
-    printf("\n == Before Inserting Words ==\n");
-    print_bloom_filter(bloom_filter);
+    // printf("\n == Before Inserting Words ==\n");
+    // print_bloom_filter(bloom_filter);
 
     struct timespec begin, end;
     clock_gettime(CLOCK_REALTIME, &begin);
@@ -304,10 +301,10 @@ int main(int argc, char const *argv[])
     long nanoseconds = end.tv_nsec - begin.tv_nsec;
     double elapsed = seconds * 1e9 + nanoseconds;
 
-    printf("\n == Inserting words using cpu took %.3f nanoseconds ===", elapsed);
+    // printf("\n == Inserting words using cpu took %.3f nanoseconds ===", elapsed);
 
-    printf("\n == After Mapping Words to Bloom Filter ==\n");
-    print_bloom_filter(bloom_filter);
+    // printf("\n == After Mapping Words to Bloom Filter ==\n");
+    // print_bloom_filter(bloom_filter);
 
     /* === QUERY === */
 
@@ -324,9 +321,9 @@ int main(int argc, char const *argv[])
     nanoseconds = end.tv_nsec - begin.tv_nsec;
     elapsed = seconds*1e9 + nanoseconds;
 
-    printf("\n == Querying words using cpu took %.3f nanoseconds ===", elapsed);
+    // printf("\n == Querying words using cpu took %.3f nanoseconds ===", elapsed);
 
-    printf("\n== After Querying Words from Bloom Filter ==\n");
+    // printf("\n== After Querying Words from Bloom Filter ==\n");
 
     print_query_results(words_to_query, query_results);
 
