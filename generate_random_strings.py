@@ -11,7 +11,7 @@ file = open('random_strings.txt', 'w')
 
 n_words = int((sys.argv)[1])
 
-print(f'{n_words} random 16bytes strings are being generated ...')
+print(f'{n_words} random strings are being generated ...')
 
 for i in range(n_words):
     size = random.randint(16, 128)
