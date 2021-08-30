@@ -201,8 +201,9 @@ void print_info()
 
 void insert_words_bloom_filter(char **words_to_insert, uint32_t *bloom_filter)
 {
-    for (int i = 0; i < N_WORDS_TO_INSERT; i++)
+    #pragma omp parallel
     {
+        int i=omp_get_thread_num();
         uint32_t index = 0;
 
         // uint64_t hash = XXH64((uint8_t *)words_to_insert[i], strlen(words_to_insert[i]), 0);
@@ -227,8 +228,9 @@ void insert_words_bloom_filter(char **words_to_insert, uint32_t *bloom_filter)
 
 void query_words_bloom_filter(char **words_to_query, uint32_t *bloom_filter, uint32_t *query_results)
 {
-    for (int i = 0; i < N_WORDS_TO_QUERY; i++)
+    #pragma omp parallel
     {
+        int i=omp_get_thread_num();
         int is_present = 1;
         uint32_t index = 0;
 
@@ -317,10 +319,7 @@ int main(int argc, char const *argv[])
 
     clock_gettime(CLOCK_REALTIME, &begin);
 
-    #pragma omp parallel
-    {
-        query_words_bloom_filter(words_to_query, bloom_filter, query_results);
-    }
+    query_words_bloom_filter(words_to_query, bloom_filter, query_results);
 
     clock_gettime(CLOCK_REALTIME, &end);
     seconds = end.tv_sec - begin.tv_sec;
