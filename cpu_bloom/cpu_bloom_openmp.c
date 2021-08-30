@@ -297,10 +297,8 @@ int main(int argc, char const *argv[])
     struct timespec begin, end;
     clock_gettime(CLOCK_REALTIME, &begin);
 
-    #pragma omp parallel
-    {
-        insert_words_bloom_filter(words_to_insert, bloom_filter);
-    }
+    insert_words_bloom_filter(words_to_insert, bloom_filter);
+
     clock_gettime(CLOCK_REALTIME, &end);
     long seconds = end.tv_sec - begin.tv_sec;
     long nanoseconds = end.tv_nsec - begin.tv_nsec;
