@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("1.CUDA error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }
 
@@ -48,7 +48,7 @@ int main(int argc, char const *argv[])
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("2.CUDA error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }
 
@@ -59,7 +59,7 @@ int main(int argc, char const *argv[])
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("3.CUDA error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }
     
@@ -70,7 +70,7 @@ int main(int argc, char const *argv[])
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("4.CUDA error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }
     
@@ -81,7 +81,7 @@ int main(int argc, char const *argv[])
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("5.CUDA error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }    
 
@@ -92,7 +92,7 @@ int main(int argc, char const *argv[])
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("6.CUDA error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }
     
