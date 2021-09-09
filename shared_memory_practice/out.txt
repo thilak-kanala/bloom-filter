@@ -1,0 +1,12 @@
+exact
+loan
+offense
+patient
+planet
+instal
+rehearsal
+tone
+liability
+glide
+words: 
+ exact loan offense patient planet instal rehearsal tone liability glide 
