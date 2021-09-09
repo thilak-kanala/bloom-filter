@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
         exit(-1);
     }
 
-    cudaMalloc((void **)d_input_data, sizeof(input_data));
+    cudaMalloc((void **)&d_input_data, sizeof(input_data));
 
     // check for error
     error = cudaGetLastError();
