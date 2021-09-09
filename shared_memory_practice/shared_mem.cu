@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
     cudaMalloc((void **)d_input_data, sizeof(input_data));
 
     // check for error
-    cudaError_t error = cudaGetLastError();
+    error = cudaGetLastError();
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
     cudaMemcpy(d_input_data, input_data, sizeof(input_data), cudaMemcpyHostToDevice);
 
     // check for error
-    cudaError_t error = cudaGetLastError();
+    error = cudaGetLastError();
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
@@ -66,7 +66,7 @@ int main(int argc, char const *argv[])
     kernel<<<2, 32>>>(d_input_data);
 
     // check for error
-    cudaError_t error = cudaGetLastError();
+    error = cudaGetLastError();
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
@@ -77,7 +77,7 @@ int main(int argc, char const *argv[])
     cudaMemcpy(input_data, d_input_data, sizeof(input_data), cudaMemcpyDeviceToHost);
 
     // check for error
-    cudaError_t error = cudaGetLastError();
+    error = cudaGetLastError();
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
@@ -88,7 +88,7 @@ int main(int argc, char const *argv[])
     cudaFree(d_input_data);
 
     // check for error
-    cudaError_t error = cudaGetLastError();
+    error = cudaGetLastError();
     if(error != cudaSuccess)
     {
         // print the CUDA error message and exit
