@@ -10,7 +10,7 @@
 #define APHASH 4
 #define SHA1 5
 #define MD5 6
-#define MURMUR 6
+#define MURMUR 7
 
 
 #define HASHSIZE_MD5 16

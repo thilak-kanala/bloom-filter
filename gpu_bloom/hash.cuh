@@ -224,5 +224,4 @@ uint32_t hash(char *string, uint32_t string_len, int hash_function)
         printf("Not a valid hash: %d\n", hash_function);
         return 0;
     }
-
 }
