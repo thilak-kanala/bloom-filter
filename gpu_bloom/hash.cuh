@@ -240,7 +240,7 @@ uint32_t hash(char *string, uint32_t string_len, int hash_function)
     else if (hash_function == FNV)
     {
         // TODO: 
-        uint32_t hash = FNVHash((const char*) string, string_len);
+        uint32_t hash = FNVHash(string, string_len);
 
         return hash;
     }
