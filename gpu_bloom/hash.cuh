@@ -103,6 +103,23 @@ jenkins(char *string, uint32_t string_len)
 
 /* === General Purpose Hash Functions END ===*/
 
+/* Some more hash functions */
+__device__
+uint32_t
+FNVHash(char* str, uint32_t length) {
+	const unsigned int fnv_prime = 0x811C9DC5;
+	unsigned int hash = 0;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash *= fnv_prime;
+		hash ^= (*str);
+	}
+
+	return hash;
+}
+
 /* === Murmur hash BEGIN === */
 /* Reference - https://github.com/jwerle/murmurhash.c/blob/master/murmurhash.c */
 __device__
@@ -217,6 +234,13 @@ uint32_t hash(char *string, uint32_t string_len, int hash_function)
     {
         // TODO: 
         uint32_t hash = murmurhash((const char*) string, string_len, 0);
+
+        return hash;
+    }
+    else if (hash_function == FNV)
+    {
+        // TODO: 
+        uint32_t hash = FNVHash((const char*) string, string_len);
 
         return hash;
     }

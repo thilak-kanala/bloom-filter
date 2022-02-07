@@ -11,6 +11,7 @@
 #define SHA1 5
 #define MD5 6
 #define MURMUR 7
+#define FNV 8
 
 
 #define HASHSIZE_MD5 16
