@@ -12,6 +12,12 @@
 #define MD5 6
 #define MURMUR 7
 #define FNV 8
+#define JS 9
+#define BP 10
+#define SDBM 11
+#define ELF 12
+#define PJW 13
+#define BKDR 14
 
 
 #define HASHSIZE_MD5 16
