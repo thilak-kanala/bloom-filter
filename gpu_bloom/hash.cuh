@@ -120,6 +120,109 @@ FNVHash(char* str, uint32_t length) {
 	return hash;
 }
 
+__device__
+uint32_t
+JSHash(char* str, uint32_t length) {
+	unsigned int hash = 1315423911;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash ^= ((hash << 5) + (*str) + (hash >> 2));
+	}
+
+	return hash;
+}
+
+__device__
+uint32_t
+BPHash(char* str, uint32_t length) {
+	unsigned int hash = 0;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash = hash << 7 ^ (*str);
+	}
+
+	return hash;
+}
+
+__device__
+uint32_t
+SDBMHash(char* str, uint32_t length) {
+	unsigned int hash = 0;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash = (*str) + (hash << 6) + (hash << 16) - hash;
+	}
+
+	return hash;
+}
+
+__device__
+uint32_t
+ELFHash(char* str, uint32_t length) {
+	unsigned int hash = 0;
+	unsigned int x = 0;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash = (hash << 4) + (*str);
+
+		if ((x = hash & 0xF0000000L) != 0)
+		{
+			hash ^= (x >> 24);
+		}
+
+		hash &= ~x;
+	}
+
+	return hash;
+}
+
+__device__
+uint32_t
+PJWHash(char* str, uint32_t length) {
+	const unsigned int BitsInUnsignedInt = (unsigned int)(sizeof(unsigned int) * 8);
+	const unsigned int ThreeQuarters = (unsigned int)((BitsInUnsignedInt * 3) / 4);
+	const unsigned int OneEighth = (unsigned int)(BitsInUnsignedInt / 8);
+	const unsigned int HighBits = (unsigned int)(0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth);
+	unsigned int hash = 0;
+	unsigned int test = 0;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash = (hash << OneEighth) + (*str);
+
+		if ((test = hash & HighBits) != 0)
+		{
+			hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
+		}
+	}
+
+	return hash;
+}
+
+__device__
+uint32_t
+BKDRHash(char* str, uint32_t length) {
+	unsigned int seed = 131;
+	unsigned int hash = 0;
+	unsigned int i = 0;
+
+	for (i = 0; i < length; str++, i++)
+	{
+		hash = (hash * seed) + (*str);
+	}
+
+	return hash;
+}
+
 /* === Murmur hash BEGIN === */
 /* Reference - https://github.com/jwerle/murmurhash.c/blob/master/murmurhash.c */
 __device__
@@ -244,6 +347,48 @@ uint32_t hash(char *string, uint32_t string_len, int hash_function)
 
         return hash;
     }
+    else if (hash_function == JS)
+    {
+        // TODO: 
+        uint32_t hash = JSHash(string, string_len);
+
+        return hash;
+    }
+    else if (hash_function == BP)
+    {
+        // TODO: 
+        uint32_t hash = BPHash(string, string_len);
+
+        return hash;
+    }
+    else if (hash_function == SDBM)
+    {
+        // TODO: 
+        uint32_t hash = SDBMHash(string, string_len);
+
+        return hash;
+    }
+    else if (hash_function == ELF)
+    {
+        // TODO: 
+        uint32_t hash = ELFHash(string, string_len);
+
+        return hash;
+    }
+    else if (hash_function == PJW)
+    {
+        // TODO: 
+        uint32_t hash = PJWHash(string, string_len);
+
+        return hash;
+    }
+    else if (hash_function == BKDR)
+    {
+        // TODO: 
+        uint32_t hash = BKDRHash(string, string_len);
+
+        return hash;
+    }    
     {
         printf("Not a valid hash: %d\n", hash_function);
         return 0;
