@@ -223,6 +223,34 @@ BKDRHash(char* str, uint32_t length) {
 	return hash;
 }
 
+__device__
+uint32_t
+RSHash(char* str, uint32_t length) {
+    unsigned int b = 378551;
+    unsigned int a = 63689;
+    unsigned int hash = 0;
+    unsigned int i = 0;
+
+    for (i = 0; i < length; str++, i++)
+    {
+        hash = hash * a + (*str);
+        a = a * b;
+    }
+
+    return hash;
+}
+
+__device__
+uint32_t
+DEKHash(char* str, uint32_t length) {
+  unsigned int hash = length;
+  unsigned int i = 0;
+  for (i = 0; i < length; str++, i++) {
+    hash = ((hash << 5) ^ (hash >> 27)) ^ ( * str);
+  }
+  return hash;
+}
+
 /* === Murmur hash BEGIN === */
 /* Reference - https://github.com/jwerle/murmurhash.c/blob/master/murmurhash.c */
 __device__
@@ -386,6 +414,20 @@ uint32_t hash(char *string, uint32_t string_len, int hash_function)
     {
         // TODO: 
         uint32_t hash = BKDRHash(string, string_len);
+
+        return hash;
+    }    
+    else if (hash_function == RS)
+    {
+        // TODO: 
+        uint32_t hash = RSHash(string, string_len);
+
+        return hash;
+    }
+    else if (hash_function == DEK)
+    {
+        // TODO: 
+        uint32_t hash = DEKHash(string, string_len);
 
         return hash;
     }    

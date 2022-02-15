@@ -18,6 +18,8 @@
 #define ELF 12
 #define PJW 13
 #define BKDR 14
+#define RS 15
+#define DEK 16
 
 
 #define HASHSIZE_MD5 16
